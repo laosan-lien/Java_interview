@@ -1,5 +1,5 @@
-#tomcat是一个Servlet容器
-##Context
+# tomcat是一个Servlet容器
+## Context
 
 ```java
 class Tomcat {
@@ -32,14 +32,14 @@ class Wrapper {
 
 所以在Wrapper中，不仅仅只包括一个Servlet，还包括过滤器和Servlet池，所以Wrapper是第一层
 
-##host
+## host
 在我们现实生活中，一个应用都是部署在一个主机上的，所以，一个主机可以包含多个应用，一个应用包含多个Servlet，所以，Host是第三层容器。
 
 在Tomcat中，Host表示虚拟主机，Tomcat在处理请求时，可以根据请求的域名进入到相应的Host中进行处理。
-##Engine
+## Engine
 Host管理Context，Context管理Wrapper，Wrapper管理Servlet，而Engine就是用来管理Host的。所以Engine是第四层容器。
 
-##知识点
+## 知识点
 1. tcp的链接时封装在socket中的， 一个socket实际就是new了一个tcp链接
 2. 代码层面的socket最终调用的时操作系统中的socket方法去建立连接
 3. tomcat处理请求得步骤

@@ -1004,10 +1004,9 @@ User user = mapper.selectById(id);
 
 
 
-Mybatis的目的是：**使得程序员能够以****调用方法****的方式****执行某个指定的sql，将执行sql的底层逻辑进行了封装。**
+Mybatis的目的是：**使得程序员能够以  ** **调用方法** **的方式** **执行某个指定的sql，将执行sql的底层逻辑进行了封装。**
 
-**
-**
+
 
 这里重点思考以下mapper这个对象，当调用SqlSession的getMapper方法时，会对传入的接口生成一个**代理对象**，而程序要真正用到的就是这个代理对象，在调用代理对象的方法时，Mybatis会取出该方法所对应的sql语句，然后利用JDBC去执行sql语句，最终得到结果。
 
@@ -1015,14 +1014,13 @@ Mybatis的目的是：**使得程序员能够以****调用方法****的方式***
 
 ## 分析需要解决的问题
 
-Spring和Mybatis时，我们重点要关注的就是这个代理对象。因为整合的目的就是：**把某个Mapper的****代理对象****作为一个****bean****放入Spring容器中，使得能够像使用一个普通bean一样去使用这个代理对象，比如能被@Autowire自动注入。**
+Spring和Mybatis时，我们重点要关注的就是这个代理对象。因为整合的目的就是：**把某个Mapper的** **代理对象** **作为一个** **bean** **放入Spring容器中，使得能够像使用一个普通bean一样去使用这个代理对象，比如能被@Autowire自动注入。**
 
-**
-**
+
 
 比如当Spring和Mybatis整合之后，我们就可以使用如下的代码来使用Mybatis中的代理对象了：
 
-```
+```java
 @Component
 public class UserService {
     @Autowired
@@ -1034,14 +1032,11 @@ public class UserService {
 }
 ```
 
-**
-**
-
 UserService中的userMapper属性就会被自动注入为Mybatis中的代理对象。如果你基于一个已经完成整合的项目去调试即可发现，userMapper的类型为：org.apache.ibatis.binding.MapperProxy@41a0aa7d。证明确实是Mybatis中的代理对象。
 
 
 
-好，那么现在我们要解决的问题的就是：**如何****能够把Mybatis的代理对象作为一个bean放入Spring容器中？**
+好，那么现在我们要解决的问题的就是：**如何** **能够把Mybatis的代理对象作为一个bean放入Spring容器中？**
 
 
 
@@ -1067,7 +1062,7 @@ Spring启动过程中，大致会经过如下步骤去生成bean
 
 一个A类：
 
-```
+```java
 @Component
 public class A {
 }
@@ -1077,7 +1072,7 @@ public class A {
 
 一个B类，不存在@Component注解
 
-```
+```java
 public class B {
 }
 ```
@@ -1101,7 +1096,7 @@ A类对应的bean对象类型仍然为A类。但是这个结论是不确定的�
 
 
 
-```
+```java
 @Component
 public class LubanBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
     @Override
@@ -1147,15 +1142,13 @@ System.out.println(context.getBean("a"));
 
 
 
-那么回到我们要解决的问题：**如何****能够把Mybatis的代理对象作为一个bean放入Spring容器中？**
+那么回到我们要解决的问题：**如何** **能够把Mybatis的代理对象作为一个bean放入Spring容器中？**
 
-**
-**
+
 
 在Spring中，**如果你想生成一个bean，那么得先生成一个BeanDefinition**，就像你想new一个对象实例，得先有一个class。
 
-**
-**
+
 
 ## 解决问题
 
@@ -1168,8 +1161,7 @@ System.out.println(context.getBean("a"));
 1. **Mybatis的代理对象的类型是什么？因为我们要设置给BeanDefinition**
 2. **我们怎么把BeanDefinition添加给Spring容器？**
 
-**
-**
+
 
 注意：上文中我们使用的BeanFactory后置处理器，他只能修改BeanDefinition，并不能新增一个BeanDefinition。我们应该使用Import技术来添加一个BeanDefinition。后文再详细介绍如果使用Import技术来添加一个BeanDefinition，可以先看一下伪代码实现思路。
 
@@ -1195,16 +1187,14 @@ SpringContainer.addBd(bd);
 
 所以回到我们的问题：**Mybatis的代理对象的类型是什么？**
 
-**
-**
+
 
 本来可以有两个答案：
 
 1. 代理对象对应的代理类
 2. 代理对象对应的接口
 
-**
-**
+
 
 那么答案1就相当于没有了，因为是代理类是动态生成的，那么我们来看答案2：**代理对象对应的接口**
 
@@ -1227,7 +1217,7 @@ SpringContainer.addBd(bd);
 
 那么现在问题来了，我要解决的问题：**Mybatis的代理对象的类型是什么？**
 
-两个答案都被我们否定了，所以这个问题是无解的，所以我们不能再沿着这个思路去思考了，只能回到最开始的问题：**如何****能够把Mybatis的代理对象作为一个bean放入Spring容器中？**
+两个答案都被我们否定了，所以这个问题是无解的，所以我们不能再沿着这个思路去思考了，只能回到最开始的问题：**如何** **能够把Mybatis的代理对象作为一个bean放入Spring容器中？**
 
 
 
@@ -1245,7 +1235,7 @@ SpringContainer.addBd(bd);
 
 有，那就是Spring中的FactoryBean。我们可以利用FactoryBean去自定义我们要生成的bean对象，比如：
 
-```
+```java
 @Component
 public class LubanFactoryBean implements FactoryBean {
     @Override
@@ -1272,8 +1262,7 @@ public class LubanFactoryBean implements FactoryBean {
 }
 ```
 
-**
-**
+
 
 我们定义了一个LubanFactoryBean，它实现了FactoryBean，getObject方法就是用来自定义生成bean对象逻辑的。
 
@@ -1281,7 +1270,7 @@ public class LubanFactoryBean implements FactoryBean {
 
 执行如下代码：
 
-```
+```java
 public class Test {
     public static void main(String[] args) {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
@@ -1316,7 +1305,7 @@ lubanFactoryBean-class: class com.sun.proxy.$Proxy20
 
 
 
-```
+```java
 @Component
 public class LubanFactoryBean implements FactoryBean {
 
@@ -1359,7 +1348,7 @@ public class LubanFactoryBean implements FactoryBean {
 
 实际上LubanFactoryBean也是一个Bean，我们也可以通过生成一个BeanDefinition来生成一个LubanFactoryBean，并给构造方法的参数设置不同的值，比如伪代码如下：
 
-```
+```java
 BeanDefinition bd = new BeanDefinitoin();
 // 注意一：设置的是LubanFactoryBean
 bd.setBeanClassName(LubanFactoryBean.class.getName());
@@ -1434,7 +1423,7 @@ public class AppConfig {
 
 第一，单独再定义一个@LubanScan的注解，如下：
 
-```
+```java
 @Retention(RetentionPolicy.RUNTIME)
 @Import(LubanImportBeanDefinitionRegistrar.class)
 public @interface LubanScan {
